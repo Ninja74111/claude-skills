@@ -15,7 +15,7 @@ Claude Code is brilliant in the terminal, until the answer gets *big*. A multi-s
 - 📊 **Real visuals** — inline SVG curves, Chart.js bar/line/donut charts, CSS comparison bars, color-coded cards. Not markdown wrapped in a `<div>` — actual browser rendering that markdown can't do.
 - 🧵 **One living document per session** — each answer is appended as a new entry with a sticky table-of-contents sidebar. Click **Refresh ↻** to see the latest.
 - ✏️ **Edit-in-place** — say "drop that option" or "what if the price is X" and Claude *revises the existing entry* (with a 🔄 edited badge and strikethrough audit trail) instead of dumping a fresh wall of text.
-- 🌍 **Speaks your language** — entries are written in whatever language you chat in. Thai in, Thai out; English in, English out.
+- 🌍 **Speaks your language** — entries follow whatever language you chat in (Thai in, Thai out; English in, English out), or pin a fixed output language at toggle-on with `/html Thai`.
 - 🧭 **Smart routing** — long analysis goes to HTML; short confirmations, errors, and *especially* destructive-action prompts stay in chat where you'll actually see them.
 
 Short clarifications stay in the terminal. The big stuff gets a real page. That's the whole idea.
@@ -40,7 +40,7 @@ This installs the skill globally so it's available in every project. Drop `--all
 
 Grab [`skills/html/SKILL.md`](skills/html/SKILL.md) and drop it here:
 
-```
+```text
 ~/.claude/skills/html/SKILL.md     # global (all projects)
 # — or —
 .claude/skills/html/SKILL.md       # this project only
@@ -54,11 +54,20 @@ That's it. Restart Claude Code (or start a new session) and the skill is live.
 
 Toggle it **on**:
 
-```
+```text
 /html
 ```
 
 …or just say `html on`, `html mode`, or the equivalent in your language. Claude creates a session file at `./.claude-html/session_<date>_<time>.html`, opens with your last answer as entry #1, and replies with a clickable link. Open that file in a browser and keep it beside your chat.
+
+**Choose the output language.** By default, entries are written in whatever language you're chatting in. To pin a fixed language regardless of how you type, append it when toggling on:
+
+```bash
+/html Thai      # every entry in Thai — even when you ask in English
+/html English   # force English
+```
+
+Change it any time with `html language English`.
 
 From then on:
 

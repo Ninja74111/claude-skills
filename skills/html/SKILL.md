@@ -6,9 +6,10 @@ description: >
   HTML file you keep open in a browser beside your chat — rendered with real
   SVG / Chart.js visuals, tables, and cards instead of plain terminal text.
   Click a sticky Refresh button to see new entries. Stays active across every
-  turn until you say "html off" or toggle /html again. Replies stay in your own
-  language. Use when the user invokes /html or says "html on", "html mode", or
-  the equivalent in any language (e.g. "เปิด html").
+  turn until you say "html off" or toggle /html again. Output follows your chat
+  language by default, or a fixed language if you append one (e.g. /html Thai).
+  Use when the user invokes /html or says "html on", "html mode", or the
+  equivalent in any language (e.g. "เปิด html").
 ---
 
 # html — Persistent HTML-output mode
@@ -35,7 +36,9 @@ Triggers work in any language — match the intent, not the exact string.
 
 | User says | Action |
 |---|---|
-| `/html`, "html on", "html mode on", "เปิด html" | Toggle ON. Create session file. Render last substantive answer as entry #1 if one exists in conversation. |
+| `/html`, "html on", "html mode on", "เปิด html" | Toggle ON in **Mode 1** (output matches the chat language). Create session file. Render last substantive answer as entry #1 if one exists in conversation. |
+| `/html <language>`, "html on Thai", "html mode in French", "เปิด html อังกฤษ" | Toggle ON in **Mode 2** (lock all output to `<language>`). Same as above + record the fixed language (see "Output language"). |
+| "html language English", "switch html to English" (while on) | Change the fixed output language mid-session. |
 | `/html` (when already on), "html off", "stop html", "ปิด html" | Toggle OFF. Reply with link to session file + entry count. |
 | Turn prefixed with "in chat", "chat only", "short" (or e.g. "สั้นๆ") | Skip HTML for that turn only. Mode stays on. |
 
@@ -47,6 +50,7 @@ Triggers work in any language — match the intent, not the exact string.
 - **One file per `/html` ON event** — do not reuse yesterday's file even if the mode toggles on again.
 - **Filename time** = the moment of toggle-on, not the current time per entry.
 - After writing, reply in chat with a clickable path: `[.claude-html/session_X.html](.claude-html/session_X.html)`.
+- **Output language**: by default entries match the chat language. If a language was appended at toggle-on (e.g. `/html Thai`), record it as a `<!-- html-output-language: ... -->` comment in the file and write every entry in that language (see "Output language").
 
 > Tip: add `.claude-html/` to your `.gitignore` so session files don't get committed.
 
@@ -74,9 +78,15 @@ Triggers work in any language — match the intent, not the exact string.
 
 ## Output language (CRITICAL)
 
-The user reads both HTML entries and chat replies. **Both must be in the same language the user is writing in** (or the language configured in their project/global instructions). Do not default to English just because the source log line or tool output was English.
+Two modes, chosen when the mode is toggled on:
 
-**Apply the user's language to entry content**:
+**Mode 1 — Match the chat (default).** With a plain `/html` / "html on", every HTML entry and chat reply is written in the same language the user is writing in (or the language configured in their project/global instructions). Thai in → Thai out; English in → English out.
+
+**Mode 2 — Fixed output language.** If the user appends a language when toggling on — `/html Thai`, "html on Japanese", "html mode in French", "เปิด html อังกฤษ" — lock ALL output (HTML entries + chat replies) to that language for the whole session, no matter what language the user types their questions in. This mirrors a personal "always one language" setup, generalized to any language.
+- **Persist the choice across turns**: write `<!-- html-output-language: Thai -->` directly under the opening `<html ...>` tag of the session file, and set `<html lang="th">` to match. On a later turn, if unsure which language is locked, read that comment to recover it.
+- The user can change it mid-session — e.g. "html language English", "switch html to English" — update the marker comment and write subsequent entries in the new language.
+
+Do not default to English just because the source log line or tool output was English. Whichever mode is active, **apply the active language to entry content**:
 - All headings (H2/H3/H4)
 - All paragraphs and explanations
 - All table labels (column headers, row labels)
@@ -86,7 +96,7 @@ The user reads both HTML entries and chat replies. **Both must be in the same la
 - All tooltip / toast text
 - All button labels (except short-code copy buttons like "A"/"B")
 
-**Apply the user's language to chat replies** too (the 1-line delta after writing an entry, status messages, clarifications).
+**Apply the active language to chat replies** too (the 1-line delta after writing an entry, status messages, clarifications).
 
 **Keep the original token only for** things that are names, not prose:
 - Tickers / asset names: `$AAPL`, `QQQ`, `BTC`
@@ -109,7 +119,7 @@ The user reads both HTML entries and chat replies. **Both must be in the same la
 
 (If the user writes in English, keep everything in English — the same rule, mirrored.)
 
-**Self-check before the chat reply**: if the entry headings are in a different language than the user → rewrite to match BEFORE telling the user "added entry". Tool output may be in another language, but the framing around it follows the user.
+**Self-check before the chat reply**: if the entry headings are in a different language than the active language → rewrite to match BEFORE telling the user "added entry". Tool output may be in another language, but the framing around it follows the active language.
 
 ---
 
@@ -292,9 +302,10 @@ Keep chat output terse — the user reads the detail in HTML. Do NOT duplicate t
 When `/html` (or an equivalent) fires and no session file exists yet:
 
 1. Note the current timestamp; build the path `./.claude-html/session_<YYYY-MM-DD>_<HHmm>.html`
-2. Look at the most recent **substantive** assistant message in the conversation (skip greetings, tool status, clarifications).
-3. If found: `Write` the full HTML skeleton with that message rendered as `entry-1` (apply the viz analysis + the user's language). Chat reply: `[link] — html mode ON. brought the last answer in as entry 1`
-4. If no prior substantive answer: `Write` the HTML skeleton with an empty `<main>` and empty TOC `<ol>`. Chat reply: `[link] — html mode ON. waiting for the first entry`
+2. **Determine the output language**: if the trigger appended one (e.g. `/html Thai`) → Mode 2, that fixed language; otherwise → Mode 1, match the chat. For Mode 2, record a `<!-- html-output-language: ... -->` comment and set `<html lang>` accordingly.
+3. Look at the most recent **substantive** assistant message in the conversation (skip greetings, tool status, clarifications).
+4. If found: `Write` the full HTML skeleton with that message rendered as `entry-1` (apply the viz analysis + the active language). Chat reply: `[link] — html mode ON. brought the last answer in as entry 1`
+5. If no prior substantive answer: `Write` the HTML skeleton with an empty `<main>` and empty TOC `<ol>`. Chat reply: `[link] — html mode ON. waiting for the first entry`
 
 ## Toggle-off behavior
 
