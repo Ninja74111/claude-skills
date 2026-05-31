@@ -1,4 +1,4 @@
-# claude-skills
+# nui-skills
 
 A small, growing collection of [Claude Code](https://claude.com/claude-code) skills I build for my own work and share freely — because good tools are better when more people have them.
 
@@ -35,7 +35,7 @@ Want to poke at it live? Open [`examples/demo-session.html`](examples/demo-sessi
 ### Option A — the `skills` CLI (quickest)
 
 ```bash
-npx skills@latest add Ninja74111/claude-skills -g --all
+npx skills@latest add Ninja74111/nui-skills -g --all
 ```
 
 This installs the skill globally so it's available in every project. Drop `--all` to pick interactively, or `-g` to scope it to the current project only. (`npx` fetches the [`skills`](https://github.com/vercel-labs/skills) CLI for you.)
